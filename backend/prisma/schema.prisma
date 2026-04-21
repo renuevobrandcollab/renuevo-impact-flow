@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id                      String    @id @default(cuid())
+  name                    String
+  description             String?
+  image                   String?
+  images                  String[]
+  category                String    @default("accessories")
+  gross_margin_percentage Float     @default(0)
+  donation_percentage     Float     @default(0)
+  active                  Boolean   @default(false)
+  shopify_product_id      String?   @unique
+  createdAt               DateTime  @default(now())
+  variants                Variant[]
+}
+
+model Variant {
+  id                        String   @id @default(cuid())
+  product_id                String
+  product                   Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  shopify_variant_id        String?  @unique
+  shopify_inventory_item_id String?
+  title                     String
+  cost_price                Float    @default(0)
+  gross_margin_percentage   Float    @default(0)
+  donation_percentage       Float    @default(0)
+  net_margin_percentage     Float    @default(0)
+  selling_price             Float    @default(0)
+  shopify_price_synced      Boolean  @default(false)
+  stock                     Int?
+  active                    Boolean  @default(false)
+  createdAt                 DateTime @default(now())
+}
+
+model Order {
+  id               String   @id @default(cuid())
+  shopify_order_id String   @unique
+  order_date       DateTime
+  customer_email   String?
+  customer_name    String?
+  items            Json
+  total_price      Float    @default(0)
+  total_cost       Float    @default(0)
+  donation_amount  Float    @default(0)
+  profit_amount    Float    @default(0)
+  status           String   @default("pending")
+  createdAt        DateTime @default(now())
+}
+
+model PeriodFinance {
+  id          String   @id @default(cuid())
+  period_key  String   @unique
+  other_costs Float?
+  is_closed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model ImpactFund {
+  id              String   @id @default(cuid())
+  total_generated Float    @default(0)
+  total_allocated Float    @default(0)
+  current_balance Float    @default(0)
+  updatedAt       DateTime @updatedAt
+}
+
+model ImpactProject {
+  id               String   @id @default(cuid())
+  title            String
+  description      String
+  images           String[]
+  amount_allocated Float    @default(0)
+  goal_amount      Float?
+  status           String   @default("planned")
+  location         String?
+  beneficiaries    Int?
+  createdAt        DateTime @default(now())
+}
+
+model ManualDonation {
+  id        String   @id @default(cuid())
+  amount    Float
+  date      DateTime
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String
+  excerpt     String?
+  cover_image String?
+  category    String   @default("news")
+  published   Boolean  @default(false)
+  author      String?
+  createdAt   DateTime @default(now())
+}
+
+model ShopifyConnection {
+  id           String   @id @default(cuid())
+  shop         String   @unique
+  access_token String
+  scope        String?
+  connected_at DateTime @default(now())
+  status       String   @default("active")
+}
